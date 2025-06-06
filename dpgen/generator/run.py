@@ -2242,6 +2242,14 @@ def _read_model_devi_file(
     model_devi_f_avg_relative: bool = False,
     model_devi_merge_traj: bool = False,
 ):
+    def remove_repeated_element(_model_devi: np.array) -> np.array:
+        '''Remove repeated time step in LAMMPS's model_devi.out when using `fix atom/swap`, See https://github.com/deepmodeling/dpgen/issues/1756'''
+        model_devi = _model_devi.copy()[::-1]
+        _, indices, counts = np.unique(model_devi[:, 0], return_index=True, return_counts=True)
+        if np.any(counts > 1):
+            model_devi = model_devi[indices]
+        return model_devi
+    
     model_devi_files = glob.glob(os.path.join(task_path, "model_devi*.out"))
     if len(model_devi_files) > 1:
         model_devi_files_sorted = sorted(
@@ -2315,6 +2323,7 @@ def _read_model_devi_file(
                     )
                     os.rename(traj_files_sorted[ibead][itraj], new_filename)
     model_devi = np.loadtxt(os.path.join(task_path, "model_devi.out"))
+    model_devi = remove_repeated_element(model_devi)    
     if model_devi_f_avg_relative:
         if model_devi_merge_traj is True:
             all_traj = os.path.join(task_path, "all.lammpstrj")
