@@ -4397,7 +4397,7 @@ def post_fp_vasp(iter_index, jdata, rfailed=None):
                         # check if ele_temp shape is correct
                         _sys.check_data()
                 if all_sys is None:
-                    all_sys = _sys
+                    all_sys = dpdata.MultiSystems(_sys, type_map=jdata["type_map"])
                 else:
                     all_sys.append(_sys)
             elif len(_sys) >= 2:
